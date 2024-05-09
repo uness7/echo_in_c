@@ -1,12 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 /* Structs  & Enums Used */
+typedef enum e_echo_type
+{
+	WORD,
+	_SPACE
+}		t_echo_type;
 
-/* Functions Prototypes */
+typedef struct	s_echo_arr
+{
+	t_echo_type	type;
+	char	*data;
+}		t_echo_arr;
+
 
 /* Implementation */
+
+bool	is_space(char c)
+{
+	return (c == ' ' || c == '\t' || c == '\n');
+}
 
 bool	is_quotes(char c)
 {
@@ -45,7 +61,8 @@ t_echo_arr	**split(char *input)
 	int			token_length;
 
 	inside_quotes = false;
-	res = arena_alloc(arena, (strlen(input)) * (sizeof(t_echo_arr *)) + 1);
+	res = malloc(strlen(input) * (sizeof(t_echo_arr *)) + 1);
+	if (res == NULL) return NULL;
 	k = 0;
 	i = 0;
 	input+=5;
@@ -58,8 +75,9 @@ t_echo_arr	**split(char *input)
 		}
 		else if (!inside_quotes && is_space(input[i]))
 		{
-			res[k] = arena_alloc(arena, sizeof(t_echo_arr));
-			res[k]->data = ft_strdup(arena, "SPACE");
+			res[k] = malloc(sizeof(t_echo_arr));
+			if (res[k] == NULL) return NULL;
+			res[k]->data = strdup("SPACE");
 			res[k]->type = _SPACE;
 			k++;
 			while (input[i] && input[i] == ' ')
@@ -83,9 +101,9 @@ t_echo_arr	**split(char *input)
 			{
 				//printf("current : %c\n", input[i]);
 				token_length = i - start_index;
-				res[k] = arena_alloc(arena, sizeof(t_echo_arr));
-				res[k]->data = arena_alloc(arena, (token_length + 1)
-						* sizeof(char));
+				res[k] = malloc(sizeof(t_echo_arr));
+				if (res[k] == NULL) return NULL;
+				res[k]->data = malloc((token_length + 1) * sizeof(char));
 				res[k]->type = WORD;
 				strncpy(res[k]->data, input + start_index, token_length);
 				remove_last_quote(res[k]->data);
@@ -127,7 +145,7 @@ void	jump_spaces(t_echo_arr ***arr)
 	}
 }
 
-int	ft_echo(char *input)
+int	echo(char *input)
 {
 	int			i;
 	int			flag;
@@ -135,12 +153,11 @@ int	ft_echo(char *input)
 
 	i = 0;
 	flag = 0;
-	echo_args = split(arena, input);
+	echo_args = split(input);
 	jump_spaces(&echo_args);
 	while (echo_args[i] != NULL)
 	{
-		if (ft_strncmp(echo_args[i]->data, "-", 1) == 0
-			&& check_str_for_n_char(echo_args[i]->data))
+		if (strncmp(echo_args[i]->data, "-", 1) == 0 && check_str_for_n_char(echo_args[i]->data))
 		{
 			i++;
 			flag = 1;
@@ -164,7 +181,6 @@ int	ft_echo(char *input)
 	return (0);
 }
 
-/* Main Function  */
 int	main(void)
 {
 	char	*input = "echo -n hello world";
